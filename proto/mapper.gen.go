@@ -15,10 +15,12 @@ const ProductStarRatingStars = "product.starrating.stars"
 const ProductStarRatingCount = "product.starrating.count"
 const ProductStarRatingDetailsSomething = "product.starrating.details.something"
 const ProductStarRatingDetailsNothing = "product.starrating.details.nothing"
+const ProductStarRatingDetailsPenum = "product.starrating.details.penum"
 const ProductQuery = "product.query"
 const ProductPageNumber = "product.pageNumber"
 const ProductResultPerPage = "product.resultPerPage"
 const ProductIndicator = "product.indicator"
+const ProductCode = "product.code"
 
 // ToMap Convert a struct into a Map
 func (p *Product) ToMap() map[string]string {
@@ -32,12 +34,14 @@ func (p *Product) ToMap() map[string]string {
 		if p.StarRating.Details != nil {
 			m[ProductStarRatingDetailsSomething] = p.StarRating.Details.Something
 			m[ProductStarRatingDetailsNothing] = p.StarRating.Details.Nothing
+			m[ProductStarRatingDetailsPenum] = p.StarRating.Details.Penum.String()
 		}
 	}
 	m[ProductQuery] = p.Query
 	m[ProductPageNumber] = fmt.Sprintf("%f", p.PageNumber)
 	m[ProductResultPerPage] = strconv.Itoa(int(p.ResultPerPage))
 	m[ProductIndicator] = strconv.FormatBool(p.Indicator)
+	m[ProductCode] = p.Code.String()
 	return m
 }
 
@@ -49,19 +53,21 @@ func FromMap(m map[string]string) *Product {
 	p.PriceDetails = m[ProductPriceDetails]
 	if p.StarRating != nil {
 		p.StarRating.Stars = m[ProductStarRatingStars]
-		iG, _ := strconv.Atoi(m[ProductStarRatingCount])
-		p.StarRating.Count = int32(iG)
+		ix, _ := strconv.Atoi(m[ProductStarRatingCount])
+		p.StarRating.Count = int32(ix)
 		if p.StarRating.Details != nil {
 			p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
 			p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
+			p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
 		}
 	}
 	p.Query = m[ProductQuery]
-	fK, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
-	p.PageNumber = fK
-	iF, _ := strconv.Atoi(m[ProductResultPerPage])
-	p.ResultPerPage = int32(iF)
-	bp, _ := strconv.ParseBool(m[ProductIndicator])
-	p.Indicator = bp
+	fx, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
+	p.PageNumber = fx
+	iV, _ := strconv.Atoi(m[ProductResultPerPage])
+	p.ResultPerPage = int32(iV)
+	bL, _ := strconv.ParseBool(m[ProductIndicator])
+	p.Indicator = bL
+	p.Code = Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
 	return p
 }

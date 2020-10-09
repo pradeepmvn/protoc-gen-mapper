@@ -177,7 +177,6 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseBool(m["+cKey+"])")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
 		case descriptorpb.FieldDescriptorProto_TYPE_FLOAT, descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
-			log.Println("Float", f.GetJsonName())
 			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
 			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
 			lval := ""
@@ -189,6 +188,17 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseFloat(m["+cKey+"],64)")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
+		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+			lval := ""
+			if len(val) > 0 {
+				lval = strings.Title(val) + "."
+			}
+			*mapping = append(*mapping, "m["+cKey+"] = p."+lval+strings.Title(f.GetJsonName())+".String()")
+			// p.Code= Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
+			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"= "+replaceTypeNameForEnums(f.GetTypeName())+"("+replaceTypeNameForEnums(f.GetTypeName())+"_value[m["+cKey+"]])")
+
 		default:
 			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
 			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
@@ -198,9 +208,6 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = p."+lval+strings.Title(f.GetJsonName()))
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"= m["+cKey+"]")
-
-			// case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			// case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 		}
 	}
 }
@@ -216,6 +223,19 @@ func replaceDotWithCamelCase(input string) string {
 		out = append(out, strings.Title(s[i]))
 	}
 	return strings.Join(out, "")
+}
+
+// replaceTypeNameForEnums
+func replaceTypeNameForEnums(input string) string {
+	s := strings.Split(input, ".")
+	if len(s) == 0 {
+		return input
+	}
+	out := []string{}
+	for i := 2; i < len(s); i++ {
+		out = append(out, strings.Title(s[i]))
+	}
+	return strings.Join(out, "_")
 }
 
 func randString(length int) string {

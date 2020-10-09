@@ -36,9 +36,8 @@ protoc --plugin proto-gen-mapper  --mapper_out="parent=Product:." product.proto
 Features
 - multi package
 - nested structure
-- multi supported types: string, int32, int64, float, double, bool
+- multi supported types: string, int32, int64, float, double, bool, enum
 
 To do
 - repeated
 - map
-- enum

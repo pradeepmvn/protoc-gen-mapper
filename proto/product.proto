@@ -8,11 +8,16 @@ message Product {
   string name=1;
   string description=2;
   string price_details=3;
-  Rating star_rating =4;
+  Rating starRating =4;
   string query = 5;
   double page_number = 6;
   int32 result_per_page = 7;
   bool indicator=9;
+  enum StatusCode {
+    STATUS_GOOD = 0;
+    STATUS_BAD = 1;
+  }
+  StatusCode code = 10;
 }
 
 message Rating{
@@ -20,8 +25,13 @@ message Rating{
   int32 count=2;
   Detail details =3;
 }
-
+enum ParentEnum {
+  STATUS_GOOD = 0;
+  STATUS_BAD = 1;
+}
 message Detail{
   string something=1;
   string nothing=2;
+
+  ParentEnum penum = 3;
 }
