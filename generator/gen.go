@@ -19,7 +19,7 @@ const (
 	OutDir            = "proto"
 	ToMapFuncName     = "ToMap"
 	FromMapFuncName   = "FromMap"
-	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	charset           = "abcdefghijklmnopqrstuvwxyz"
 )
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -135,11 +135,11 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			}
 			// add a null check before recusion
 			*mapping = append(*mapping, "if p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" != nil {")
-			*revMapping = append(*revMapping, "if p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" != nil {")
+			// new instance when populating back
+			//	p.StarRating = new(Rating)
+			*revMapping = append(*revMapping, "p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" = new("+v+")")
 			processMessageTypes(messagesMap[v], resp, mapping, revMapping, parent+"."+f.GetJsonName(), messagesMap, newVal+f.GetJsonName())
 			*mapping = append(*mapping, "}")
-			*revMapping = append(*revMapping, "}")
-
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32:
 			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
 			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
@@ -148,7 +148,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 				lval = strings.Title(val) + "."
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
-			fn := "i" + randString(1)
+			fn := "i" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.Atoi(m["+cKey+"])")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"=int32("+fn+")")
@@ -160,7 +160,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 				lval = strings.Title(val) + "."
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
-			fn := "i" + randString(1)
+			fn := "i" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ :=  strconv.ParseInt(m["+cKey+"], 10, 64)")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
@@ -172,7 +172,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 				lval = strings.Title(val) + "."
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.FormatBool(p."+lval+strings.Title(f.GetJsonName())+")")
-			fn := "b" + randString(1)
+			fn := "b" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseBool(m["+cKey+"])")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
@@ -184,7 +184,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 				lval = strings.Title(val) + "."
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = fmt.Sprintf(\"%f\", p."+lval+strings.Title(f.GetJsonName())+")")
-			fn := "f" + randString(1)
+			fn := "f" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseFloat(m["+cKey+"],64)")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
@@ -238,6 +238,7 @@ func replaceTypeNameForEnums(input string) string {
 	return strings.Join(out, "_")
 }
 
+// randString returns a random lowercase string of given length
 func randString(length int) string {
 	b := make([]byte, length)
 	for i := range b {

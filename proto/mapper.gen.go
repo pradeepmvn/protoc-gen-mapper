@@ -51,23 +51,21 @@ func FromMap(m map[string]string) *Product {
 	p.Name = m[ProductName]
 	p.Description = m[ProductDescription]
 	p.PriceDetails = m[ProductPriceDetails]
-	if p.StarRating != nil {
-		p.StarRating.Stars = m[ProductStarRatingStars]
-		ix, _ := strconv.Atoi(m[ProductStarRatingCount])
-		p.StarRating.Count = int32(ix)
-		if p.StarRating.Details != nil {
-			p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
-			p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
-			p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
-		}
-	}
+	p.StarRating = new(Rating)
+	p.StarRating.Stars = m[ProductStarRatingStars]
+	ilw, _ := strconv.Atoi(m[ProductStarRatingCount])
+	p.StarRating.Count = int32(ilw)
+	p.StarRating.Details = new(Detail)
+	p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
+	p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
+	p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
 	p.Query = m[ProductQuery]
-	fx, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
-	p.PageNumber = fx
-	iV, _ := strconv.Atoi(m[ProductResultPerPage])
-	p.ResultPerPage = int32(iV)
-	bL, _ := strconv.ParseBool(m[ProductIndicator])
-	p.Indicator = bL
+	faw, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
+	p.PageNumber = faw
+	igl, _ := strconv.Atoi(m[ProductResultPerPage])
+	p.ResultPerPage = int32(igl)
+	bfx, _ := strconv.ParseBool(m[ProductIndicator])
+	p.Indicator = bfx
 	p.Code = Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
 	return p
 }

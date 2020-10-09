@@ -9,16 +9,33 @@ import (
 	"testing"
 )
 
-func Test_ToMap(t *testing.T) {
-	p := new(Product)
+var p Product
+
+func init() {
+	p = Product{}
 	p.Name = "Gopher"
 	p.StarRating = new(Rating)
 	p.StarRating.Count = 10
+}
+
+func Test_ToMap(t *testing.T) {
+
 	m := p.ToMap()
 	if m[ProductName] != "Gopher" {
-		t.Error("Naes Dont Match")
+		t.Error("Name Doesnt Match")
 	}
 	if m[ProductStarRatingCount] != "10" {
-		t.Error("Naes Dont Match")
+		t.Error("Count Doesnt Match")
+	}
+}
+
+func Test_FromMap(t *testing.T) {
+	m := p.ToMap()
+	p1 := FromMap(m)
+	if p1.GetName() != "Gopher" {
+		t.Error("Name Doesnt Match")
+	}
+	if p1.GetStarRating().GetCount() != 10 {
+		t.Error("Count Doesnt Match. Got: ", p1.GetStarRating().GetCount())
 	}
 }

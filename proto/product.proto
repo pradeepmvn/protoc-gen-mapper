@@ -8,7 +8,7 @@ message Product {
   string name=1;
   string description=2;
   string price_details=3;
-  Rating starRating =4;
+  Rating star_rating =4;
   string query = 5;
   double page_number = 6;
   int32 result_per_page = 7;
