@@ -18,12 +18,14 @@ message Product {
     STATUS_BAD = 1;
   }
   StatusCode code = 10;
+  map<string, string> additionalData = 11;
 }
 
 message Rating{
   string stars=1;
   int32 count=2;
   Detail details =3;
+  map<string, string> additionalRatings = 11;
 }
 enum ParentEnum {
   STATUS_GOOD = 0;

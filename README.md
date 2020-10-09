@@ -37,7 +37,7 @@ Features
 - multi package
 - nested structure
 - multi supported types: string, int32, int64, float, double, bool, enum
+- map types in proto will be skipped (no point in coverting map to map)
 
 To do
 - repeated
-- map
