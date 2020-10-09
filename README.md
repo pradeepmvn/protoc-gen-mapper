@@ -1,6 +1,7 @@
 # protoc-gen-mapper
 
 A simple Static Code generator for converting Proto structures into a Flat map. Plugin this tool into your regular proto generaors for golang
+All the scalar types are converted to string types by default
 
 ## Build
 
@@ -35,6 +36,7 @@ protoc --plugin proto-gen-mapper  --mapper_out="parent=Product:." product.proto
 Features
 - multi package
 - nested structure
+- multi supported types: string, int32, int64, float, double, bool
 
 To do
 - repeated

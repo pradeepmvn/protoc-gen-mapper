@@ -2,8 +2,10 @@ package generator
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"google.golang.org/protobuf/proto"
@@ -17,7 +19,10 @@ const (
 	OutDir            = "proto"
 	ToMapFuncName     = "ToMap"
 	FromMapFuncName   = "FromMap"
+	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
+
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 //MapperGen is main struct that constains requ and responses for generation
 type MapperGen struct {
@@ -27,6 +32,8 @@ type MapperGen struct {
 	parentStruct string
 	// proto message definitions
 	messages map[string]*ProtoMessageDetails
+	//pkg imports to be added
+	pkgImports map[string]struct{}
 }
 
 // ProtoMessageDetails with package name and message details
@@ -40,6 +47,7 @@ func New() *MapperGen {
 	g := new(MapperGen)
 	g.Request = new(plugin.CodeGeneratorRequest)
 	g.Response = new(plugin.CodeGeneratorResponse)
+	g.pkgImports = make(map[string]struct{})
 	return g
 }
 
@@ -79,6 +87,9 @@ func (m *MapperGen) Generate() {
 	resp = append(resp, "//////////////////////////////////////////////////////////////////////////////////////////////")
 	resp = append(resp, "")
 	resp = append(resp, "package "+msg.p)
+	//add imports
+	resp = append(resp, "import \"strconv\"")
+	resp = append(resp, "import \"fmt\"")
 	resp = append(resp, "")
 
 	//storage for all feilds, non-nil
@@ -116,6 +127,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 	for _, f := range msg.mtype.Field {
 		switch f.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+			//recursion for message
 			v := f.GetTypeName()[strings.LastIndex(f.GetTypeName(), ".")+1:]
 			newVal := ""
 			if len(val) > 0 {
@@ -127,6 +139,56 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			processMessageTypes(messagesMap[v], resp, mapping, revMapping, parent+"."+f.GetJsonName(), messagesMap, newVal+f.GetJsonName())
 			*mapping = append(*mapping, "}")
 			*revMapping = append(*revMapping, "}")
+
+		case descriptorpb.FieldDescriptorProto_TYPE_INT32:
+			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+			lval := ""
+			if len(val) > 0 {
+				lval = strings.Title(val) + "."
+			}
+			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
+			fn := "i" + randString(1)
+			//convert back to str
+			*revMapping = append(*revMapping, fn+", _ := strconv.Atoi(m["+cKey+"])")
+			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"=int32("+fn+")")
+		case descriptorpb.FieldDescriptorProto_TYPE_INT64:
+			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+			lval := ""
+			if len(val) > 0 {
+				lval = strings.Title(val) + "."
+			}
+			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
+			fn := "i" + randString(1)
+			//convert back to str
+			*revMapping = append(*revMapping, fn+", _ :=  strconv.ParseInt(m["+cKey+"], 10, 64)")
+			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
+		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
+			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+			lval := ""
+			if len(val) > 0 {
+				lval = strings.Title(val) + "."
+			}
+			*mapping = append(*mapping, "m["+cKey+"] = strconv.FormatBool(p."+lval+strings.Title(f.GetJsonName())+")")
+			fn := "b" + randString(1)
+			//convert back to str
+			*revMapping = append(*revMapping, fn+", _ := strconv.ParseBool(m["+cKey+"])")
+			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
+		case descriptorpb.FieldDescriptorProto_TYPE_FLOAT, descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
+			log.Println("Float", f.GetJsonName())
+			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+			lval := ""
+			if len(val) > 0 {
+				lval = strings.Title(val) + "."
+			}
+			*mapping = append(*mapping, "m["+cKey+"] = fmt.Sprintf(\"%f\", p."+lval+strings.Title(f.GetJsonName())+")")
+			fn := "f" + randString(1)
+			//convert back to str
+			*revMapping = append(*revMapping, fn+", _ := strconv.ParseFloat(m["+cKey+"],64)")
+			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
 		default:
 			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
 			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
@@ -136,8 +198,8 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			}
 			*mapping = append(*mapping, "m["+cKey+"] = p."+lval+strings.Title(f.GetJsonName()))
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"= m["+cKey+"]")
+
 			// case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			// case descriptorpb.FieldDescriptorProto_TYPE_INT32:
 			// case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 		}
 	}
@@ -154,4 +216,12 @@ func replaceDotWithCamelCase(input string) string {
 		out = append(out, strings.Title(s[i]))
 	}
 	return strings.Join(out, "")
+}
+
+func randString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }
