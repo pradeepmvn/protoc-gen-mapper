@@ -55,16 +55,8 @@ func New() *MapperGen {
 // Generate generates the output for all the files we're outputting.
 // Also returns constants names for furthur usage by main func
 func (m *MapperGen) Generate() []string {
-	params := m.Request.GetParameter()
-	//process command line param and get parent struct name. It is case sensitive. Exact match
-	for _, p := range strings.Split(params, ",") {
-		// ignore other params for now
-		if i := strings.Index(p, "="); i > 0 {
-			if p[0:i] == ParentStructParam {
-				m.parentStruct = p[i+1:]
-			}
-		}
-	}
+	m.parentStruct = m.ExtractParentParam()
+
 	if len(m.parentStruct) < 1 {
 		log.Print("No  Parent Param found in the input. Usage : --map_out=\"parent=Product:.\" ")
 		os.Exit(1)
@@ -231,4 +223,19 @@ func randString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+// ExtractParentParam extract Parent Parm value. Empty if it doest exist
+func (m *MapperGen) ExtractParentParam() string {
+	params := m.Request.GetParameter()
+	//process command line param and get parent struct name. It is case sensitive. Exact match
+	for _, p := range strings.Split(params, ",") {
+		// ignore other params for now
+		if i := strings.Index(p, "="); i > 0 {
+			if p[0:i] == ParentStructParam {
+				return p[i+1:]
+			}
+		}
+	}
+	return ""
 }
