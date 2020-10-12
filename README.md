@@ -23,14 +23,14 @@ Multiple options to run the plugin.
 Installed
 
 ```bash
-protoc --mapper_out="parent=Product:." --go_out=. product.proto
+protoc --mapper_out="parent=Product:." --go_out=. proto/product.proto
 ```
 
 From binary
 
 ```bash
 
-protoc --plugin proto-gen-mapper  --mapper_out="parent=Product:." product.proto
+protoc --plugin proto-gen-mapper  --mapper_out="parent=Product:." proto/product.proto
 ```
 
 Features

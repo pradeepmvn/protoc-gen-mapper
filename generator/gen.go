@@ -134,8 +134,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			log.Println("Skipping Map: ", f.GetName())
 			continue
 		}
-		switch f.GetType() {
-		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+		if f.GetType() == descriptorpb.FieldDescriptorProto_TYPE_MESSAGE {
 			//recursion for message
 			v := f.GetTypeName()[strings.LastIndex(f.GetTypeName(), ".")+1:]
 			newVal := ""
@@ -145,76 +144,48 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			// add a null check before recusion
 			*mapping = append(*mapping, "if p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" != nil {")
 			// new instance when populating back
-			//	p.StarRating = new(Rating)
 			*revMapping = append(*revMapping, "p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" = new("+v+")")
 			processMessageTypes(messagesMap[v], resp, mapping, revMapping, parent+"."+f.GetJsonName(), messagesMap, newVal+f.GetJsonName())
 			*mapping = append(*mapping, "}")
+			continue
+		}
+		// for other types.,
+		cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
+		lval := ""
+		if len(val) > 0 {
+			lval = strings.Title(val) + "."
+		}
+		*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
+		switch f.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
 			fn := "i" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.Atoi(m["+cKey+"])")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"=int32("+fn+")")
 		case descriptorpb.FieldDescriptorProto_TYPE_INT64:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.Itoa(int(p."+lval+strings.Title(f.GetJsonName())+"))")
 			fn := "i" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ :=  strconv.ParseInt(m["+cKey+"], 10, 64)")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
 		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
 			*mapping = append(*mapping, "m["+cKey+"] = strconv.FormatBool(p."+lval+strings.Title(f.GetJsonName())+")")
 			fn := "b" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseBool(m["+cKey+"])")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
 		case descriptorpb.FieldDescriptorProto_TYPE_FLOAT, descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
 			*mapping = append(*mapping, "m["+cKey+"] = fmt.Sprintf(\"%f\", p."+lval+strings.Title(f.GetJsonName())+")")
 			fn := "f" + randString(2)
 			//convert back to str
 			*revMapping = append(*revMapping, fn+", _ := strconv.ParseFloat(m["+cKey+"],64)")
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"="+fn)
 		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
 			*mapping = append(*mapping, "m["+cKey+"] = p."+lval+strings.Title(f.GetJsonName())+".String()")
-			// p.Code= Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"= "+replaceTypeNameForEnums(f.GetTypeName())+"("+replaceTypeNameForEnums(f.GetTypeName())+"_value[m["+cKey+"]])")
-
 		default:
-			cKey := replaceDotWithCamelCase(parent) + strings.Title(f.GetJsonName())
-			*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
-			lval := ""
-			if len(val) > 0 {
-				lval = strings.Title(val) + "."
-			}
+			//all other types
 			*mapping = append(*mapping, "m["+cKey+"] = p."+lval+strings.Title(f.GetJsonName()))
 			*revMapping = append(*revMapping, "p."+lval+strings.Title(f.GetJsonName())+"= m["+cKey+"]")
 		}

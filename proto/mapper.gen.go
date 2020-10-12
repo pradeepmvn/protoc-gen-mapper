@@ -4,67 +4,68 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 package product
+
 import "strconv"
 import "fmt"
 
-const ProductName= "product.name"
-const ProductDescription= "product.description"
-const ProductPriceDetails= "product.priceDetails"
-const ProductStarRatingStars= "product.starrating.stars"
-const ProductStarRatingCount= "product.starrating.count"
-const ProductStarRatingDetailsSomething= "product.starrating.details.something"
-const ProductStarRatingDetailsNothing= "product.starrating.details.nothing"
-const ProductStarRatingDetailsPenum= "product.starrating.details.penum"
-const ProductQuery= "product.query"
-const ProductPageNumber= "product.pageNumber"
-const ProductResultPerPage= "product.resultPerPage"
-const ProductIndicator= "product.indicator"
-const ProductCode= "product.code"
-// ToMap Convert a struct into a Map
-func (p *Product) ToMap()  map[string]string {
-m := make(map[string]string)
-m[ProductName] = p.Name
-m[ProductDescription] = p.Description
-m[ProductPriceDetails] = p.PriceDetails
-if p.StarRating != nil {
-m[ProductStarRatingStars] = p.StarRating.Stars
-m[ProductStarRatingCount] = strconv.Itoa(int(p.StarRating.Count))
-if p.StarRating.Details != nil {
-m[ProductStarRatingDetailsSomething] = p.StarRating.Details.Something
-m[ProductStarRatingDetailsNothing] = p.StarRating.Details.Nothing
-m[ProductStarRatingDetailsPenum] = p.StarRating.Details.Penum.String()
-}
-}
-m[ProductQuery] = p.Query
-m[ProductPageNumber] = fmt.Sprintf("%f", p.PageNumber)
-m[ProductResultPerPage] = strconv.Itoa(int(p.ResultPerPage))
-m[ProductIndicator] = strconv.FormatBool(p.Indicator)
-m[ProductCode] = p.Code.String()
-return m
-}
+const ProductName = "product.name"
+const ProductDescription = "product.description"
+const ProductPriceDetails = "product.priceDetails"
+const ProductStarRatingStars = "product.starrating.stars"
+const ProductStarRatingCount = "product.starrating.count"
+const ProductStarRatingDetailsSomething = "product.starrating.details.something"
+const ProductStarRatingDetailsNothing = "product.starrating.details.nothing"
+const ProductStarRatingDetailsPenum = "product.starrating.details.penum"
+const ProductQuery = "product.query"
+const ProductPageNumber = "product.pageNumber"
+const ProductResultPerPage = "product.resultPerPage"
+const ProductIndicator = "product.indicator"
+const ProductCode = "product.code"
 
+// ToMap Convert a struct into a Map
+func (p *Product) ToMap() map[string]string {
+	m := make(map[string]string)
+	m[ProductName] = p.Name
+	m[ProductDescription] = p.Description
+	m[ProductPriceDetails] = p.PriceDetails
+	if p.StarRating != nil {
+		m[ProductStarRatingStars] = p.StarRating.Stars
+		m[ProductStarRatingCount] = strconv.Itoa(int(p.StarRating.Count))
+		if p.StarRating.Details != nil {
+			m[ProductStarRatingDetailsSomething] = p.StarRating.Details.Something
+			m[ProductStarRatingDetailsNothing] = p.StarRating.Details.Nothing
+			m[ProductStarRatingDetailsPenum] = p.StarRating.Details.Penum.String()
+		}
+	}
+	m[ProductQuery] = p.Query
+	m[ProductPageNumber] = fmt.Sprintf("%f", p.PageNumber)
+	m[ProductResultPerPage] = strconv.Itoa(int(p.ResultPerPage))
+	m[ProductIndicator] = strconv.FormatBool(p.Indicator)
+	m[ProductCode] = p.Code.String()
+	return m
+}
 
 // FromMap Convert a Map into a Struct
-func FromMap(m map[string]string) *Product{
-var p=new(Product) 
-p.Name= m[ProductName]
-p.Description= m[ProductDescription]
-p.PriceDetails= m[ProductPriceDetails]
-p.StarRating = new(Rating)
-p.StarRating.Stars= m[ProductStarRatingStars]
-iin, _ := strconv.Atoi(m[ProductStarRatingCount])
-p.StarRating.Count=int32(iin)
-p.StarRating.Details = new(Detail)
-p.StarRating.Details.Something= m[ProductStarRatingDetailsSomething]
-p.StarRating.Details.Nothing= m[ProductStarRatingDetailsNothing]
-p.StarRating.Details.Penum= ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
-p.Query= m[ProductQuery]
-fbu, _ := strconv.ParseFloat(m[ProductPageNumber],64)
-p.PageNumber=fbu
-ihl, _ := strconv.Atoi(m[ProductResultPerPage])
-p.ResultPerPage=int32(ihl)
-bhu, _ := strconv.ParseBool(m[ProductIndicator])
-p.Indicator=bhu
-p.Code= Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
-return p
+func FromMap(m map[string]string) *Product {
+	var p = new(Product)
+	p.Name = m[ProductName]
+	p.Description = m[ProductDescription]
+	p.PriceDetails = m[ProductPriceDetails]
+	p.StarRating = new(Rating)
+	p.StarRating.Stars = m[ProductStarRatingStars]
+	ict, _ := strconv.Atoi(m[ProductStarRatingCount])
+	p.StarRating.Count = int32(ict)
+	p.StarRating.Details = new(Detail)
+	p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
+	p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
+	p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
+	p.Query = m[ProductQuery]
+	foq, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
+	p.PageNumber = foq
+	iwx, _ := strconv.Atoi(m[ProductResultPerPage])
+	p.ResultPerPage = int32(iwx)
+	bmb, _ := strconv.ParseBool(m[ProductIndicator])
+	p.Indicator = bmb
+	p.Code = Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
+	return p
 }
