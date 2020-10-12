@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -52,7 +53,8 @@ func New() *MapperGen {
 }
 
 // Generate generates the output for all the files we're outputting.
-func (m *MapperGen) Generate() {
+// Also returns constants names for furthur usage by main func
+func (m *MapperGen) Generate() []string {
 	params := m.Request.GetParameter()
 	//process command line param and get parent struct name. It is case sensitive. Exact match
 	for _, p := range strings.Split(params, ",") {
@@ -99,10 +101,12 @@ func (m *MapperGen) Generate() {
 	//storage for all feilds, non-nil
 	revMapping := []string{}
 	mapping := []string{}
-
+	constNames := []string{}
+	resp = append(resp, "place_holder_constant_comment")
+	indexBefore := len(resp) - 1
 	//process recursively
-	processMessageTypes(msg, &resp, &mapping, &revMapping, m.parentStruct, m.messages, "")
-
+	processMessageTypes(msg, &resp, &mapping, &revMapping, &constNames, m.parentStruct, m.messages, "")
+	resp[indexBefore] = "// Total No.Of Constants Created: " + fmt.Sprint(len(constNames))
 	//create a map function
 	resp = append(resp, "// "+ToMapFuncName+" Convert a struct into a Map")
 	resp = append(resp, "func (p *"+m.parentStruct+") "+ToMapFuncName+"()  map[string]string {")
@@ -124,9 +128,10 @@ func (m *MapperGen) Generate() {
 		Name:    proto.String(OutDir + "/" + OutFileName + ".gen.go"),
 		Content: proto.String(strings.Join(resp, "\n")),
 	})
+	return constNames
 }
 
-func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]string, revMapping *[]string, parent string, messagesMap map[string]*ProtoMessageDetails, val string) {
+func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]string, revMapping *[]string, constNames *[]string, parent string, messagesMap map[string]*ProtoMessageDetails, val string) {
 	log.Println("generating for : " + msg.mtype.GetName())
 	for _, f := range msg.mtype.Field {
 		//skip map types
@@ -145,7 +150,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 			*mapping = append(*mapping, "if p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" != nil {")
 			// new instance when populating back
 			*revMapping = append(*revMapping, "p."+strings.Title(newVal)+strings.Title(f.GetJsonName())+" = new("+v+")")
-			processMessageTypes(messagesMap[v], resp, mapping, revMapping, parent+"."+f.GetJsonName(), messagesMap, newVal+f.GetJsonName())
+			processMessageTypes(messagesMap[v], resp, mapping, revMapping, constNames, parent+"."+f.GetJsonName(), messagesMap, newVal+f.GetJsonName())
 			*mapping = append(*mapping, "}")
 			continue
 		}
@@ -155,6 +160,7 @@ func processMessageTypes(msg *ProtoMessageDetails, resp *[]string, mapping *[]st
 		if len(val) > 0 {
 			lval = strings.Title(val) + "."
 		}
+		*constNames = append(*constNames, strings.ToLower(parent)+"."+f.GetJsonName())
 		*resp = append(*resp, "const "+cKey+"= \""+strings.ToLower(parent)+"."+f.GetJsonName()+"\"")
 		switch f.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32:

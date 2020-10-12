@@ -8,6 +8,7 @@ package product
 import "strconv"
 import "fmt"
 
+// Total No.Of Constants Created: 13
 const ProductName = "product.name"
 const ProductDescription = "product.description"
 const ProductPriceDetails = "product.priceDetails"
@@ -53,19 +54,19 @@ func FromMap(m map[string]string) *Product {
 	p.PriceDetails = m[ProductPriceDetails]
 	p.StarRating = new(Rating)
 	p.StarRating.Stars = m[ProductStarRatingStars]
-	ict, _ := strconv.Atoi(m[ProductStarRatingCount])
-	p.StarRating.Count = int32(ict)
+	ids, _ := strconv.Atoi(m[ProductStarRatingCount])
+	p.StarRating.Count = int32(ids)
 	p.StarRating.Details = new(Detail)
 	p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
 	p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
 	p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
 	p.Query = m[ProductQuery]
-	foq, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
-	p.PageNumber = foq
-	iwx, _ := strconv.Atoi(m[ProductResultPerPage])
-	p.ResultPerPage = int32(iwx)
-	bmb, _ := strconv.ParseBool(m[ProductIndicator])
-	p.Indicator = bmb
+	ftn, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
+	p.PageNumber = ftn
+	ieh, _ := strconv.Atoi(m[ProductResultPerPage])
+	p.ResultPerPage = int32(ieh)
+	bfb, _ := strconv.ParseBool(m[ProductIndicator])
+	p.Indicator = bfb
 	p.Code = Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
 	return p
 }
