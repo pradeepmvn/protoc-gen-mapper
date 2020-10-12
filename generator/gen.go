@@ -15,15 +15,18 @@ import (
 
 //ParentStructParam
 const (
+	charset = "abcdefghijklmnopqrstuvwxyz"
+)
+
+var (
+	seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	// defining as Var so that other can override them
 	ParentStructParam = "parent"
 	OutFileName       = "mapper"
 	OutDir            = "proto"
 	ToMapFuncName     = "ToMap"
 	FromMapFuncName   = "FromMap"
-	charset           = "abcdefghijklmnopqrstuvwxyz"
 )
-
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 //MapperGen is main struct that constains requ and responses for generation
 type MapperGen struct {
@@ -56,7 +59,6 @@ func New() *MapperGen {
 // Also returns constants names for furthur usage by main func
 func (m *MapperGen) Generate() []string {
 	m.parentStruct = m.ExtractParentParam()
-
 	if len(m.parentStruct) < 1 {
 		log.Print("No  Parent Param found in the input. Usage : --map_out=\"parent=Product:.\" ")
 		os.Exit(1)

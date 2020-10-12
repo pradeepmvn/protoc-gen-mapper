@@ -54,19 +54,19 @@ func FromMap(m map[string]string) *Product {
 	p.PriceDetails = m[ProductPriceDetails]
 	p.StarRating = new(Rating)
 	p.StarRating.Stars = m[ProductStarRatingStars]
-	ivq, _ := strconv.Atoi(m[ProductStarRatingCount])
-	p.StarRating.Count = int32(ivq)
+	ics, _ := strconv.Atoi(m[ProductStarRatingCount])
+	p.StarRating.Count = int32(ics)
 	p.StarRating.Details = new(Detail)
 	p.StarRating.Details.Something = m[ProductStarRatingDetailsSomething]
 	p.StarRating.Details.Nothing = m[ProductStarRatingDetailsNothing]
 	p.StarRating.Details.Penum = ParentEnum(ParentEnum_value[m[ProductStarRatingDetailsPenum]])
 	p.Query = m[ProductQuery]
-	fmu, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
-	p.PageNumber = fmu
-	ilz, _ := strconv.Atoi(m[ProductResultPerPage])
-	p.ResultPerPage = int32(ilz)
-	bfm, _ := strconv.ParseBool(m[ProductIndicator])
-	p.Indicator = bfm
+	frm, _ := strconv.ParseFloat(m[ProductPageNumber], 64)
+	p.PageNumber = frm
+	inz, _ := strconv.Atoi(m[ProductResultPerPage])
+	p.ResultPerPage = int32(inz)
+	bum, _ := strconv.ParseBool(m[ProductIndicator])
+	p.Indicator = bum
 	p.Code = Product_StatusCode(Product_StatusCode_value[m[ProductCode]])
 	return p
 }
